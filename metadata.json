@@ -1,0 +1,6 @@
+{
+  "name": "PatternPilot",
+  "description": "Interactive Data Structures and Algorithms pattern roadmap with categorized flowcharts, C++ code patterns, LeetCode problem recommendations, and progress tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

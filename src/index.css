@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* Custom Thinner & Darker Scrollbars */
+@layer utilities {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+  }
+
+  /* WebKit (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155; /* Slate-700 for a dark, sleek aesthetic */
+    border-radius: 9999px;
+    border: 1px solid transparent;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569; /* Slate-600 on hover */
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #1e293b; /* Darker Slate-800 in dark mode */
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
