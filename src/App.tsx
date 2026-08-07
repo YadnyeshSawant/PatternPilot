@@ -142,7 +142,11 @@ export default function App() {
       )}
 
       {/* Top Controls Header with Curriculum Mastery in Right Corner */}
-      <ControlPanel treeData={dsaTreeData} userMeta={userMeta} />
+      <ControlPanel
+        treeData={dsaTreeData}
+        userMeta={userMeta}
+        onOpenGithubModal={() => setIsGithubModalOpen(true)}
+      />
 
       {/* Syllabus Selection & Filter Bar */}
       <StatsBar
