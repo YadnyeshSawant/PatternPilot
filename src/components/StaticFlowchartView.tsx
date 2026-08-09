@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Search,
   Sparkles,
-  Trophy
+  Trophy,
+  FolderTree
 } from 'lucide-react';
 
 interface Props {
@@ -238,7 +239,7 @@ export const StaticFlowchartView: React.FC<Props> = ({
 
         {/* Children Branch Render */}
         {hasChildren && !isCollapsed && (
-          <div className="pl-4 sm:pl-6 border-l-2 border-slate-200 dark:border-slate-800 mt-3 space-y-3 w-full">
+          <div className="pl-2 sm:pl-6 border-l-2 border-slate-200 dark:border-slate-800 mt-2 sm:mt-3 space-y-2 sm:space-y-3 w-full">
             {node.childrenIds!.map((childId) => renderFlowchartNode(childId, depth + 1))}
           </div>
         )}
@@ -248,27 +249,27 @@ export const StaticFlowchartView: React.FC<Props> = ({
 
   // Advanced DSA Banner
   const renderAdvancedDsaBanner = () => (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-950 via-slate-900 to-indigo-950 border border-red-500/30 p-6 sm:p-8 text-white shadow-xl my-6">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-red-950 via-slate-900 to-indigo-950 border border-red-500/30 p-4 sm:p-8 text-white shadow-xl my-4 sm:my-6">
       <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="relative z-10 space-y-4">
+      <div className="relative z-10 space-y-3 sm:space-y-4">
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
+          <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-[11px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-red-400" />
             Competitive Programming & Research
           </span>
         </div>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <Trophy className="w-7 h-7 text-amber-400" />
+          <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5 sm:gap-3">
+            <Trophy className="w-5 h-5 sm:w-7 sm:h-7 text-amber-400" />
             <span>ADVANCED DSA</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl font-medium leading-relaxed">
             High-level algorithms and data structures designed for elite competitive programming, research, and top-tier algorithmic contests.
           </p>
         </div>
-        <div className="pt-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Mainly Useful For:</h4>
-          <div className="flex flex-wrap gap-2">
+        <div className="pt-1 sm:pt-2">
+          <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Mainly Useful For:</h4>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {[
               'Codeforces Expert+',
               'ICPC',
@@ -279,9 +280,9 @@ export const StaticFlowchartView: React.FC<Props> = ({
             ].map((item, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs font-semibold text-red-200 flex items-center gap-1.5 shadow-2xs"
+                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-slate-800/80 border border-slate-700/80 text-[11px] sm:text-xs font-semibold text-red-200 flex items-center gap-1.5 shadow-2xs"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-red-400" />
+                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
                 <span>{item}</span>
               </span>
             ))}
@@ -291,13 +292,261 @@ export const StaticFlowchartView: React.FC<Props> = ({
     </div>
   );
 
+  // Render Overview Directory Index Row
+  const renderOverviewRow = (nodeId: string, indexStr: string, isLastChild: boolean) => {
+    const node = treeData[nodeId];
+    if (!node || !isNodeVisible(nodeId)) return null;
+
+    const isSelected = selectedNodeId === nodeId;
+    const meta = userMeta[nodeId] || { status: 'not_started' };
+    const questionsCount = node.questions?.length || 0;
+
+    const isSearchMatch =
+      searchQuery.trim() !== '' &&
+      (node.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return (
+      <div key={nodeId} className="relative group">
+        <div
+          onClick={() => onSelectNode(nodeId)}
+          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2.5 px-3 sm:px-4 my-1 rounded-xl border transition-all cursor-pointer ${
+            isSelected
+              ? 'bg-indigo-50/90 dark:bg-indigo-950/80 border-indigo-500 shadow-xs ring-1 ring-indigo-500/50'
+              : isSearchMatch
+              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400'
+              : 'bg-white dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800/80 hover:bg-indigo-50/50 dark:hover:bg-slate-800/70 hover:border-indigo-300 dark:hover:border-indigo-700'
+          }`}
+        >
+          {/* Left: Tree Connector symbol + Topic Link */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <span className="font-mono text-xs text-slate-400 dark:text-slate-500 shrink-0 select-none">
+              {isLastChild ? '└──' : '├──'}
+            </span>
+
+            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
+              {indexStr}
+            </span>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectNode(nodeId);
+              }}
+              className="text-left font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors hover:underline truncate cursor-pointer"
+            >
+              {node.title}
+            </button>
+          </div>
+
+          {/* Center & Right Metadata Tags & Quick Link */}
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto pl-6 sm:pl-0">
+            {node.timeComplexity && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hidden md:inline-block">
+                {node.timeComplexity}
+              </span>
+            )}
+
+            {questionsCount > 0 && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80 hidden sm:inline-block">
+                {questionsCount} {questionsCount === 1 ? 'question' : 'questions'}
+              </span>
+            )}
+
+            {meta.isBookmarked && <Bookmark className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />}
+
+            {meta.status === 'mastered' ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Mastered</span>
+              </span>
+            ) : meta.status === 'learning' ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                <BookOpen className="w-3 h-3" />
+                <span>Learning</span>
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-200/50 dark:border-slate-800/50">
+                Unvisited
+              </span>
+            )}
+
+            {/* Jump Link Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectNode(nodeId);
+              }}
+              className="p-1.5 rounded-lg text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Open Topic Details"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Recursive Subchildren if any */}
+        {node.childrenIds && node.childrenIds.length > 0 && !collapsedNodeIds.has(nodeId) && (
+          <div className="pl-4 sm:pl-6 border-l-2 border-indigo-200/50 dark:border-indigo-900/40 ml-3 sm:ml-4">
+            {node.childrenIds.map((childId, subIdx) =>
+              renderOverviewRow(
+                childId,
+                `${indexStr}.${subIdx + 1}`,
+                subIdx === node.childrenIds!.length - 1
+              )
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render Complete Syllabus Summary Index
+  const renderOverviewSection = () => (
+    <div className="space-y-6">
+      {/* Overview Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-md border border-indigo-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 text-indigo-300">
+            <FolderTree className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+              Syllabus Summary Directory
+            </h2>
+            <p className="text-xs text-slate-300 max-w-xl mt-0.5">
+              Complete ordered index of all 19 Data Structures & Algorithms modules. Click any topic title to view C++ source code, problem maps, and study notes.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+          <button
+            onClick={onExpandAll}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+          >
+            Expand All
+          </button>
+          <button
+            onClick={onCollapseAll}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+          >
+            Collapse All
+          </button>
+        </div>
+      </div>
+
+      {/* Ordered Category Sections */}
+      <div className="space-y-4">
+        {filteredCategoryIds.map((catId, catIdx) => {
+          const catNode = treeData[catId];
+          if (!catNode || !isNodeVisible(catId)) return null;
+
+          const isCatCollapsed = collapsedNodeIds.has(catId);
+          const children = catNode.childrenIds || [];
+          const sectionNum = catIdx + 1;
+
+          // Calculate section progress
+          let sectionMastered = 0;
+          children.forEach((cId) => {
+            if (userMeta[cId]?.status === 'mastered') sectionMastered++;
+          });
+
+          return (
+            <React.Fragment key={catId}>
+              {catId === '17' && (
+                <div className="my-6 pt-4 border-t-2 border-dashed border-red-300 dark:border-red-900/60">
+                  <div className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-transparent p-4 rounded-2xl border border-red-500/20 flex items-center gap-3">
+                    <Sparkles className="w-5 h-5 text-red-500 shrink-0" />
+                    <div>
+                      <h3 className="text-sm font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wider">
+                        Advanced DSA Sections (17 – 19)
+                      </h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        Competitive programming & interview mastery: Segment Trees, Disjoint Set Union (DSU), and Advanced Graph Algorithms.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 transition-all">
+                {/* Category Section Header */}
+                <div
+                  onClick={() => onToggleCollapse(catId)}
+                  className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800 cursor-pointer group select-none"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-8 h-8 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      {sectionNum < 10 ? `0${sectionNum}` : sectionNum}
+                    </span>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                          {catNode.title}
+                        </h3>
+                        {catId === '17' || catId === '18' || catId === '19' ? (
+                          <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-800/60">
+                            ADVANCED
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {catNode.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline-block">
+                      {sectionMastered} / {children.length} Mastered
+                    </span>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleCollapse(catId);
+                      }}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      {isCatCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subtopic Rows */}
+                {!isCatCollapsed && (
+                  <div className="pt-2">
+                    {children.length > 0 ? (
+                      children.map((childId, childIdx) =>
+                        renderOverviewRow(
+                          childId,
+                          `${sectionNum}.${childIdx + 1}`,
+                          childIdx === children.length - 1
+                        )
+                      )
+                    ) : (
+                      <p className="text-xs text-slate-400 italic py-2 pl-4">No subtopics available in this category.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
-    <div id="mindmap-viewport" className="w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div id="mindmap-viewport" className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6 space-y-4 sm:space-y-6">
       {/* Category Selection Dropdown & View Controls Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
         {/* Category Select Dropdown */}
-        <div className="flex items-center gap-2.5 flex-1 max-w-xs w-full">
-          <label htmlFor="category-select" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
+        <div className="flex items-center gap-2 flex-1 max-w-xs w-full">
+          <label htmlFor="category-select" className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap shrink-0">
             Category:
           </label>
           <div className="relative w-full">
@@ -305,7 +554,7 @@ export const StaticFlowchartView: React.FC<Props> = ({
               id="category-select"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full pl-3.5 pr-9 py-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none transition-all"
+              className="w-full pl-3 pr-8 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none transition-all truncate"
             >
               <option value="all">All Categories ({syllabusCategoryIds.length} Topics)</option>
               {syllabusCategoryIds.map((catId) => {
@@ -318,62 +567,73 @@ export const StaticFlowchartView: React.FC<Props> = ({
                 );
               })}
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* Centered Search Bar */}
         <div className="relative flex-1 max-w-md mx-auto w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search 100+ topics, Kadane, BFS, DP..."
-            className="w-full pl-9 pr-16 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-2xs transition-all"
+            className="w-full pl-8 sm:pl-9 pr-14 sm:pr-16 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-2xs transition-all"
           />
           {searchQuery && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] sm:text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
               {searchResultsCount} found
             </span>
           )}
         </div>
 
         {/* View Style Switcher & Expand/Collapse */}
-        <div className="flex items-center justify-between md:justify-end gap-2 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-2.5 lg:pt-0 border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg sm:rounded-xl">
             <button
               onClick={() => setViewStyle('flowchart')}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md sm:rounded-lg transition-colors cursor-pointer ${
                 viewStyle === 'flowchart'
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
               Flowchart
             </button>
             <button
-              onClick={() => setViewStyle('grid')}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                viewStyle === 'grid'
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
+              onClick={() => setViewStyle('tree')}
+              className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md sm:rounded-lg transition-colors flex items-center gap-1 cursor-pointer ${
+                viewStyle === 'tree'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
-              Grid View
+              <FolderTree className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>Overview</span>
+            </button>
+            <button
+              onClick={() => setViewStyle('grid')}
+              className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md sm:rounded-lg transition-colors cursor-pointer ${
+                viewStyle === 'grid'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              Grid
             </button>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg sm:rounded-xl">
             <button
               onClick={onExpandAll}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900"
+              className="px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md sm:rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 cursor-pointer"
             >
               Expand All
             </button>
             <button
               onClick={onCollapseAll}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900"
+              className="px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md sm:rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 cursor-pointer"
             >
               Collapse
             </button>
@@ -381,7 +641,7 @@ export const StaticFlowchartView: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Main Flowchart Content Area */}
+      {/* Main Flowchart / Tree Overview / Grid View Content Area */}
       {viewStyle === 'flowchart' ? (
         <div className="space-y-8">
           {filteredCategoryIds.map((catId) => {
@@ -453,6 +713,8 @@ export const StaticFlowchartView: React.FC<Props> = ({
           );
         })}
       </div>
+    ) : viewStyle === 'tree' ? (
+      renderOverviewSection()
     ) : (
       /* Grid View: Grouped by Category with Pattern Cards and Subtopics on selection */
       <div className="space-y-8">

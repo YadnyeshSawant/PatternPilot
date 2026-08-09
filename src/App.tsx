@@ -9,9 +9,10 @@ import { UserNodeMeta } from './types';
 import { ControlPanel } from './components/ControlPanel';
 import { StatsBar } from './components/StatsBar';
 import { StaticFlowchartView } from './components/StaticFlowchartView';
-import { NodeDetailDrawer } from './components/NodeDetailDrawer';
+import { TopicDetailPage } from './components/TopicDetailPage';
 import { GitHubPagesModal } from './components/GitHubPagesModal';
 import { SplashScreen } from './components/SplashScreen';
+import { updateSEOMetadata } from './utils/seo';
 
 export default function App() {
   // Splash Screen State
@@ -54,8 +55,8 @@ export default function App() {
   // Controls & Selection
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // Select node handler: auto-expands subtopics when a pattern/node is selected
-  const handleSelectNode = useCallback((nodeId: string) => {
+  // Select node handler: auto-expands subtopics when a pattern/node is selected and syncs URL ?topic=
+  const handleSelectNode = useCallback((nodeId: string, pushHistory = true) => {
     setSelectedNodeId(nodeId);
     setCollapsedNodeIds((prev) => {
       if (prev.has(nodeId)) {
@@ -65,7 +66,48 @@ export default function App() {
       }
       return prev;
     });
+
+    if (pushHistory) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('topic') !== nodeId) {
+        url.searchParams.set('topic', nodeId);
+        window.history.pushState({ topic: nodeId }, '', url.toString());
+      }
+    }
   }, []);
+
+  // Close node details drawer and remove ?topic= query parameter
+  const handleCloseNode = useCallback((pushHistory = true) => {
+    setSelectedNodeId(null);
+
+    if (pushHistory) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('topic')) {
+        url.searchParams.delete('topic');
+        window.history.pushState({ topic: null }, '', url.toString());
+      }
+    }
+  }, []);
+
+  // Sync with browser Back/Forward buttons and initial URL ?topic= parameter
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const topicFromUrl = params.get('topic');
+      if (topicFromUrl && dsaTreeData[topicFromUrl]) {
+        handleSelectNode(topicFromUrl, false);
+      } else {
+        handleCloseNode(false);
+      }
+    };
+
+    // Initial sync on mount
+    syncFromUrl();
+
+    // Listen to browser Back/Forward navigation
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, [handleSelectNode, handleCloseNode]);
   const [searchQuery, setSearchQuery] = useState('');
   const [syllabusMode, setSyllabusMode] = useState<'all' | 'mandatory' | 'advanced'>('all');
   const [filterMode, setFilterMode] = useState<'all' | 'bookmarked' | 'mastered' | 'learning'>('all');
@@ -134,6 +176,11 @@ export default function App() {
   const selectedNode = selectedNodeId ? dsaTreeData[selectedNodeId] || null : null;
   const selectedNodeMeta = selectedNodeId ? userMeta[selectedNodeId] || { status: 'not_started' } : { status: 'not_started' };
 
+  // Update SEO Head Tags & Schema.org JSON-LD dynamically
+  useEffect(() => {
+    updateSEOMetadata(selectedNode);
+  }, [selectedNode]);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans transition-colors duration-200">
       {/* Splash Screen */}
@@ -145,45 +192,51 @@ export default function App() {
       <ControlPanel
         treeData={dsaTreeData}
         userMeta={userMeta}
-        onOpenGithubModal={() => setIsGithubModalOpen(true)}
       />
 
-      {/* Syllabus Selection & Filter Bar */}
-      <StatsBar
-        treeData={dsaTreeData}
-        userMeta={userMeta}
-        syllabusMode={syllabusMode}
-        onSyllabusModeChange={setSyllabusMode}
-        filterMode={filterMode}
-        onFilterModeChange={setFilterMode}
-      />
+      {selectedNode ? (
+        /* Full-Page Dedicated Topic Detail View */
+        <main className="relative flex-1">
+          <TopicDetailPage
+            node={selectedNode}
+            meta={selectedNodeMeta}
+            onClose={() => handleCloseNode()}
+            onSelectNode={(id) => handleSelectNode(id)}
+            onUpdateMeta={handleUpdateMeta}
+          />
+        </main>
+      ) : (
+        /* Main Syllabus Flowchart / Tree / Overview View */
+        <>
+          {/* Syllabus Selection & Filter Bar */}
+          <StatsBar
+            treeData={dsaTreeData}
+            userMeta={userMeta}
+            syllabusMode={syllabusMode}
+            onSyllabusModeChange={setSyllabusMode}
+            filterMode={filterMode}
+            onFilterModeChange={setFilterMode}
+          />
 
-      {/* Main Flowchart Content */}
-      <main className="relative flex-1">
-        <StaticFlowchartView
-          treeData={dsaTreeData}
-          collapsedNodeIds={collapsedNodeIds}
-          userMeta={userMeta}
-          selectedNodeId={selectedNodeId}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchResultsCount={searchResultsCount}
-          syllabusMode={syllabusMode}
-          filterMode={filterMode}
-          onToggleCollapse={handleToggleCollapse}
-          onSelectNode={handleSelectNode}
-          onExpandAll={handleExpandAll}
-          onCollapseAll={handleCollapseAll}
-        />
-
-        {/* Selected Node Details Side Drawer */}
-        <NodeDetailDrawer
-          node={selectedNode}
-          meta={selectedNodeMeta}
-          onClose={() => setSelectedNodeId(null)}
-          onUpdateMeta={handleUpdateMeta}
-        />
-      </main>
+          <main className="relative flex-1">
+            <StaticFlowchartView
+              treeData={dsaTreeData}
+              collapsedNodeIds={collapsedNodeIds}
+              userMeta={userMeta}
+              selectedNodeId={selectedNodeId}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchResultsCount={searchResultsCount}
+              syllabusMode={syllabusMode}
+              filterMode={filterMode}
+              onToggleCollapse={handleToggleCollapse}
+              onSelectNode={handleSelectNode}
+              onExpandAll={handleExpandAll}
+              onCollapseAll={handleCollapseAll}
+            />
+          </main>
+        </>
+      )}
 
       {/* Deploy to GitHub Pages Modal */}
       <GitHubPagesModal
