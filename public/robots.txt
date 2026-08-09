@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://yadnyesh-p.github.io/PatternPilot/sitemap.xml
+Sitemap: https://yadnyeshsawant.github.io/PatternPilot/sitemap.xml

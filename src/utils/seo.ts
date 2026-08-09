@@ -5,7 +5,7 @@ import { DSANode } from '../types';
  * for search engine indexing when navigating topics or home.
  */
 export function updateSEOMetadata(node: DSANode | null) {
-  const baseUrl = 'https://yadnyesh-p.github.io/PatternPilot/';
+  const baseUrl = 'https://yadnyeshsawant.github.io/PatternPilot/';
 
   if (node) {
     const title = `${node.title} — Data Structures & Algorithms Pattern | PatternPilot`;
